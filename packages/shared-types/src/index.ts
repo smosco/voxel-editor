@@ -3,6 +3,20 @@
  * Shared TypeScript types for the voxel editor
  */
 
+// Constants
+export {
+  ANIMATION,
+  CAMERA,
+  COLORS,
+  CONSTRAINTS,
+  GRID,
+  getColorCodeByHex,
+  getColorHexByCode,
+  getDefaultSelectedColor,
+  getDefaultVoxelColor,
+  LIGHTING,
+  VOXEL,
+} from './constants';
 // Database types
 export type {
   CreateModelRequest,
