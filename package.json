@@ -1,0 +1,32 @@
+{
+  "name": "voxel-editor",
+  "version": "0.1.0",
+  "private": true,
+  "description": "voxel editor built with React Three Fiber",
+  "keywords": [
+    "voxel",
+    "3d",
+    "editor",
+    "react",
+    "three.js"
+  ],
+  "scripts": {
+    "dev": "pnpm --filter web dev",
+    "build": "pnpm -r build",
+    "preview": "pnpm --filter web preview",
+    "lint": "biome lint .",
+    "format": "biome format --write .",
+    "check": "biome check --write .",
+    "type-check": "pnpm -r type-check",
+    "clean": "pnpm -r clean && rm -rf node_modules"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.3.11",
+    "typescript": "5.9.3"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=9.0.0"
+  },
+  "packageManager": "pnpm@9.15.4"
+}
