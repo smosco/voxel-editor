@@ -26,6 +26,12 @@ importers:
       '@supabase/supabase-js':
         specifier: ^2.48.1
         version: 2.89.0
+      '@voxel-editor/shared-types':
+        specifier: workspace:*
+        version: link:../../packages/shared-types
+      '@voxel-editor/voxel-core':
+        specifier: workspace:*
+        version: link:../../packages/voxel-core
       immer:
         specifier: ^10.1.1
         version: 10.2.0
@@ -72,6 +78,22 @@ importers:
       vite:
         specifier: ^7.2.4
         version: 7.3.1(@types/node@24.10.4)
+
+  packages/shared-types:
+    devDependencies:
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+
+  packages/voxel-core:
+    dependencies:
+      '@voxel-editor/shared-types':
+        specifier: workspace:*
+        version: link:../shared-types
+    devDependencies:
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
 
 packages:
 

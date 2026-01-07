@@ -1,6 +1,6 @@
-import { defineConfig } from 'vite';
-import react from '@vitejs/plugin-react-swc';
 import path from 'node:path';
+import react from '@vitejs/plugin-react-swc';
+import { defineConfig } from 'vite';
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -27,7 +27,7 @@ export default defineConfig({
           'three-core': ['three'],
           'three-fiber': ['@react-three/fiber', '@react-three/drei'],
           'react-vendor': ['react', 'react-dom', 'react-router-dom'],
-          'state': ['zustand'],
+          state: ['zustand'],
         },
       },
     },
