@@ -1,12 +1,13 @@
 /**
  * 3D 복셀 에디터 메인 씬
- * Reference: CubeRenderer from Android APK
+ * Reference: CubeRenderer
  */
 
 import { OrbitControls } from '@react-three/drei';
 import { Canvas } from '@react-three/fiber';
-import { CAMERA, COLORS, type Voxel } from '@voxel-editor/shared-types';
+import { CAMERA, COLORS, type Command, type Voxel } from '@voxel-editor/shared-types';
 import { useCallback, useEffect, useState } from 'react';
+import { AddVoxelCommand, PaintVoxelCommand, RemoveVoxelCommand } from '@/commands';
 import { useInitialCamera } from '@/hooks/useInitialCamera';
 import { type RaycastHit, useVoxelRaycaster } from '@/hooks/useVoxelRaycaster';
 import { Grid } from './Grid';
@@ -36,10 +37,17 @@ interface VoxelSceneProps {
   voxels: Voxel[];
   editorMode: 'add' | 'remove' | 'paint';
   selectedColor: number;
+  onExecuteCommand: (command: Command) => void;
   onVoxelsChange: (voxels: Voxel[]) => void;
 }
 
-export function VoxelScene({ voxels, editorMode, selectedColor, onVoxelsChange }: VoxelSceneProps) {
+export function VoxelScene({
+  voxels,
+  editorMode,
+  selectedColor,
+  onExecuteCommand,
+  onVoxelsChange,
+}: VoxelSceneProps) {
   const [currentHit, setCurrentHit] = useState<RaycastHit | null>(null);
 
   return (
@@ -73,6 +81,7 @@ export function VoxelScene({ voxels, editorMode, selectedColor, onVoxelsChange }
         editorMode={editorMode}
         selectedColor={selectedColor}
         onHitChange={setCurrentHit}
+        onExecuteCommand={onExecuteCommand}
         onVoxelsChange={onVoxelsChange}
       />
 
@@ -90,6 +99,7 @@ interface SceneContentProps {
   editorMode: 'add' | 'remove' | 'paint';
   selectedColor: number;
   onHitChange: (hit: RaycastHit | null) => void;
+  onExecuteCommand: (command: Command) => void;
   onVoxelsChange: (voxels: Voxel[]) => void;
 }
 
@@ -98,11 +108,12 @@ function SceneContent({
   editorMode,
   selectedColor,
   onHitChange,
+  onExecuteCommand,
   onVoxelsChange,
 }: SceneContentProps) {
   const { raycast } = useVoxelRaycaster(voxels);
 
-  // 복셀 추가 핸들러
+  // 복셀 추가 핸들러 (Command Pattern 적용)
   const handleAddVoxel = useCallback(
     (hit: RaycastHit) => {
       let newVoxel: Voxel;
@@ -131,39 +142,61 @@ function SceneContent({
       const exists = voxels.some(
         (v) => v.x === newVoxel.x && v.y === newVoxel.y && v.z === newVoxel.z
       );
+
       if (!exists) {
-        onVoxelsChange([...voxels, newVoxel]);
+        // AddVoxelCommand 생성 및 실행
+        const command = new AddVoxelCommand(
+          newVoxel,
+          (voxel) => onVoxelsChange([...voxels, voxel]),
+          (voxel) =>
+            onVoxelsChange(
+              voxels.filter((v) => !(v.x === voxel.x && v.y === voxel.y && v.z === voxel.z))
+            )
+        );
+        onExecuteCommand(command);
       }
     },
-    [voxels, selectedColor, onVoxelsChange]
+    [voxels, selectedColor, onExecuteCommand, onVoxelsChange]
   );
 
-  // 복셀 삭제 핸들러
+  // 복셀 삭제 핸들러 (Command Pattern 적용)
   const handleRemoveVoxel = useCallback(
     (hit: RaycastHit) => {
       if (hit.type === 'voxel' && hit.voxel) {
-        const newVoxels = voxels.filter(
-          (v) => !(v.x === hit.voxel?.x && v.y === hit.voxel?.y && v.z === hit.voxel?.z)
+        // RemoveVoxelCommand 생성 및 실행
+        const command = new RemoveVoxelCommand(
+          hit.voxel,
+          (voxel) =>
+            onVoxelsChange(
+              voxels.filter((v) => !(v.x === voxel.x && v.y === voxel.y && v.z === voxel.z))
+            ),
+          (voxel) => onVoxelsChange([...voxels, voxel])
         );
-        onVoxelsChange(newVoxels);
+        onExecuteCommand(command);
       }
     },
-    [voxels, onVoxelsChange]
+    [voxels, onExecuteCommand, onVoxelsChange]
   );
 
-  // 복셀 색칠 핸들러
+  // 복셀 색칠 핸들러 (Command Pattern 적용)
   const handlePaintVoxel = useCallback(
     (hit: RaycastHit) => {
       if (hit.type === 'voxel' && hit.voxel) {
-        const newVoxels = voxels.map((v) =>
-          v.x === hit.voxel?.x && v.y === hit.voxel?.y && v.z === hit.voxel?.z
-            ? { ...v, color: getColorFromPalette(selectedColor) }
-            : v
+        const oldColor = hit.voxel.color; // 원래 색상 저장
+        const newColor = getColorFromPalette(selectedColor);
+
+        // PaintVoxelCommand 생성 및 실행
+        const command = new PaintVoxelCommand(hit.voxel, oldColor, newColor, (voxel, color) =>
+          onVoxelsChange(
+            voxels.map((v) =>
+              v.x === voxel.x && v.y === voxel.y && v.z === voxel.z ? { ...v, color } : v
+            )
+          )
         );
-        onVoxelsChange(newVoxels);
+        onExecuteCommand(command);
       }
     },
-    [voxels, selectedColor, onVoxelsChange]
+    [voxels, selectedColor, onExecuteCommand, onVoxelsChange]
   );
 
   // Canvas 전체에서 pointer move 이벤트 처리

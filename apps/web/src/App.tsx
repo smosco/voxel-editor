@@ -1,7 +1,8 @@
-import type { Voxel } from '@voxel-editor/shared-types';
-import { useState } from 'react';
+import type { Command, Voxel } from '@voxel-editor/shared-types';
+import { useRef, useState } from 'react';
 import { VoxelScene } from './components/canvas/VoxelScene';
 import { type EditorMode, Toolbar } from './components/ui/Toolbar';
+import { CommandManager } from './managers';
 
 // 테스트용 복셀 데이터
 const initialVoxels: Voxel[] = [
@@ -16,37 +17,34 @@ function App() {
   const [voxels, setVoxels] = useState<Voxel[]>(initialVoxels);
   const [editorMode, setEditorMode] = useState<EditorMode>('add');
   const [selectedColor, setSelectedColor] = useState<number>(0); // 팔레트 인덱스 (0 = Cyan)
-  const [history, setHistory] = useState<Voxel[][]>([initialVoxels]);
-  const [historyIndex, setHistoryIndex] = useState(0);
 
+  // CommandManager 초기화
+  const commandManager = useRef(new CommandManager()).current;
+  const [canUndo, setCanUndo] = useState(false);
+  const [canRedo, setCanRedo] = useState(false);
+
+  // Undo 실행
   const handleUndo = () => {
-    if (historyIndex > 0) {
-      const newIndex = historyIndex - 1;
-      const previousState = history[newIndex];
-      if (previousState) {
-        setHistoryIndex(newIndex);
-        setVoxels(previousState);
-      }
-    }
+    commandManager.backward();
+    updateUndoRedoState();
   };
 
+  // Redo 실행
   const handleRedo = () => {
-    if (historyIndex < history.length - 1) {
-      const newIndex = historyIndex + 1;
-      const nextState = history[newIndex];
-      if (nextState) {
-        setHistoryIndex(newIndex);
-        setVoxels(nextState);
-      }
-    }
+    commandManager.forward();
+    updateUndoRedoState();
   };
 
-  const addToHistory = (newVoxels: Voxel[]) => {
-    const newHistory = history.slice(0, historyIndex + 1);
-    newHistory.push(newVoxels);
-    setHistory(newHistory);
-    setHistoryIndex(newHistory.length - 1);
-    setVoxels(newVoxels);
+  // Command 실행
+  const executeCommand = (command: Command) => {
+    commandManager.executeCommand(command);
+    updateUndoRedoState();
+  };
+
+  // Undo/Redo 상태 업데이트
+  const updateUndoRedoState = () => {
+    setCanUndo(commandManager.canBackward());
+    setCanRedo(commandManager.canForward());
   };
 
   return (
@@ -58,14 +56,15 @@ function App() {
         onColorChange={setSelectedColor}
         onUndo={handleUndo}
         onRedo={handleRedo}
-        canUndo={historyIndex > 0}
-        canRedo={historyIndex < history.length - 1}
+        canUndo={canUndo}
+        canRedo={canRedo}
       />
       <VoxelScene
         voxels={voxels}
         editorMode={editorMode}
         selectedColor={selectedColor}
-        onVoxelsChange={addToHistory}
+        onExecuteCommand={executeCommand}
+        onVoxelsChange={setVoxels}
       />
     </div>
   );

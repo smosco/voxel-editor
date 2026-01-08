@@ -62,7 +62,11 @@ export function Toolbar({
         <button
           type="button"
           className={styles.historyButton}
-          onClick={onUndo}
+          onClick={(e) => {
+            // 캔버스로 이벤트 전파 방지
+            e.stopPropagation();
+            onUndo();
+          }}
           disabled={!canUndo}
           title="Undo"
         >
@@ -71,7 +75,11 @@ export function Toolbar({
         <button
           type="button"
           className={styles.historyButton}
-          onClick={onRedo}
+          onClick={(e) => {
+            // 캔버스로 이벤트 전파 방지
+            e.stopPropagation();
+            onRedo();
+          }}
           disabled={!canRedo}
           title="Redo"
         >

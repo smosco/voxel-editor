@@ -3,6 +3,9 @@
  * Shared TypeScript types for the voxel editor
  */
 
+// Command Pattern types
+export type { Command } from './command';
+export { CommandType, UndoRedoState } from './command';
 // Constants
 export {
   ANIMATION,
