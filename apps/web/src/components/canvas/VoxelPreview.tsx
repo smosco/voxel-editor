@@ -5,13 +5,12 @@ import type { RaycastHit } from '../../hooks/useVoxelRaycaster';
 interface VoxelPreviewProps {
   hit: RaycastHit | null;
   mode: 'add' | 'remove' | 'paint';
-  currentColor?: number;
 }
 
 /**
  * 마우스 위치에 따라 복셀 추가/삭제 프리뷰를 표시
  */
-export function VoxelPreview({ hit, mode, currentColor = 254 }: VoxelPreviewProps) {
+export function VoxelPreview({ hit, mode }: VoxelPreviewProps) {
   const meshRef = useRef<THREE.Mesh>(null);
 
   if (!hit) return null;

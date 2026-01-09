@@ -86,7 +86,7 @@ export function VoxelScene({
       />
 
       {/* 복셀 프리뷰 */}
-      <VoxelPreview hit={currentHit} mode={editorMode} currentColor={selectedColor} />
+      <VoxelPreview hit={currentHit} mode={editorMode} />
     </Canvas>
   );
 }
