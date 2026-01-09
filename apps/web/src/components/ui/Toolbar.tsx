@@ -12,6 +12,7 @@ interface ToolbarProps {
   onRedo: () => void;
   canUndo: boolean;
   canRedo: boolean;
+  onExport: () => void;
 }
 
 /**
@@ -26,6 +27,7 @@ export function Toolbar({
   onRedo,
   canUndo,
   canRedo,
+  onExport,
 }: ToolbarProps) {
   return (
     <div className={styles.toolbar}>
@@ -63,7 +65,6 @@ export function Toolbar({
           type="button"
           className={styles.historyButton}
           onClick={(e) => {
-            // 캔버스로 이벤트 전파 방지
             e.stopPropagation();
             onUndo();
           }}
@@ -76,7 +77,6 @@ export function Toolbar({
           type="button"
           className={styles.historyButton}
           onClick={(e) => {
-            // 캔버스로 이벤트 전파 방지
             e.stopPropagation();
             onRedo();
           }}
@@ -84,6 +84,21 @@ export function Toolbar({
           title="Redo"
         >
           <span className={styles.icon}>↷</span>
+        </button>
+      </div>
+
+      {/* Export 버튼 */}
+      <div className={styles.exportButton}>
+        <button
+          type="button"
+          className={styles.historyButton}
+          onClick={(e) => {
+            e.stopPropagation();
+            onExport();
+          }}
+          title="Export GLB"
+        >
+          <span className={styles.icon}>⬇</span>
         </button>
       </div>
 

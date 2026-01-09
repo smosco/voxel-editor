@@ -3,6 +3,7 @@ import { useRef, useState } from 'react';
 import { VoxelScene } from './components/canvas/VoxelScene';
 import { type EditorMode, Toolbar } from './components/ui/Toolbar';
 import { CommandManager } from './managers';
+import { downloadBlob, exportVoxelsToGLB } from './utils/glb-exporter';
 
 // 테스트용 복셀 데이터
 const initialVoxels: Voxel[] = [
@@ -47,6 +48,17 @@ function App() {
     setCanRedo(commandManager.canForward());
   };
 
+  // GLB Export
+  const handleExport = async () => {
+    try {
+      const blob = await exportVoxelsToGLB(voxels);
+      downloadBlob(blob, 'voxel-model.glb');
+    } catch (error) {
+      console.error('Export failed:', error);
+      alert('Failed to export GLB file');
+    }
+  };
+
   return (
     <div style={{ width: '100vw', height: '100vh', margin: 0, padding: 0 }}>
       <Toolbar
@@ -58,6 +70,7 @@ function App() {
         onRedo={handleRedo}
         canUndo={canUndo}
         canRedo={canRedo}
+        onExport={handleExport}
       />
       <VoxelScene
         voxels={voxels}
