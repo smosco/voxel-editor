@@ -20,7 +20,7 @@ export function VoxelMesh({ voxels }: VoxelMeshProps) {
 
   return (
     <mesh geometry={geometry}>
-      <meshLambertMaterial vertexColors side={THREE.DoubleSide} />
+      <meshBasicMaterial vertexColors side={THREE.DoubleSide} toneMapped={false} />
     </mesh>
   );
 }
