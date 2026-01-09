@@ -111,7 +111,10 @@ export function Toolbar({
               key={index}
               className={`${styles.colorButton} ${selectedColor === index ? styles.selected : ''}`}
               style={{ backgroundColor: paletteItem.hex }}
-              onClick={() => onColorChange(index)}
+              onClick={(e) => {
+                e.stopPropagation();
+                onColorChange(index);
+              }}
               title={paletteItem.name}
             />
           );
