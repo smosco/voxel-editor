@@ -36,7 +36,10 @@ export function Toolbar({
         <button
           type="button"
           className={`${styles.toolButton} ${currentMode === 'add' ? styles.active : ''}`}
-          onClick={() => onModeChange('add')}
+          onClick={(e) => {
+            e.stopPropagation();
+            onModeChange('add');
+          }}
           title="Add voxel"
         >
           <span className={styles.icon}>+</span>
@@ -44,7 +47,10 @@ export function Toolbar({
         <button
           type="button"
           className={`${styles.toolButton} ${currentMode === 'remove' ? styles.active : ''}`}
-          onClick={() => onModeChange('remove')}
+          onClick={(e) => {
+            e.stopPropagation();
+            onModeChange('remove');
+          }}
           title="Remove voxel"
         >
           <span className={styles.icon}>−</span>
@@ -52,7 +58,10 @@ export function Toolbar({
         <button
           type="button"
           className={`${styles.toolButton} ${currentMode === 'paint' ? styles.active : ''}`}
-          onClick={() => onModeChange('paint')}
+          onClick={(e) => {
+            e.stopPropagation();
+            onModeChange('paint');
+          }}
           title="Paint voxel"
         >
           <span className={styles.icon}>💧</span>
