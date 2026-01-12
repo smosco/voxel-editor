@@ -7,6 +7,7 @@ import { OrbitControls } from '@react-three/drei';
 import { Canvas } from '@react-three/fiber';
 import { CAMERA, COLORS, type Command, type Voxel } from '@voxel-editor/shared-types';
 import { useCallback, useEffect, useState } from 'react';
+import * as THREE from 'three';
 import { AddVoxelCommand, PaintVoxelCommand, RemoveVoxelCommand } from '@/commands';
 import { useInitialCamera } from '@/hooks/useInitialCamera';
 import { type RaycastHit, useVoxelRaycaster } from '@/hooks/useVoxelRaycaster';
@@ -52,6 +53,7 @@ export function VoxelScene({
 
   return (
     <Canvas
+      shadows
       camera={{
         position: [10, 10, 10],
         near: CAMERA.NEAR,
@@ -62,6 +64,7 @@ export function VoxelScene({
       gl={{
         antialias: true,
         alpha: false,
+        toneMapping: THREE.NoToneMapping,
       }}
       style={{
         width: '100%',
@@ -267,18 +270,26 @@ function CameraSetup() {
 }
 
 /**
- * 6방향 directional lights
- * Reference: CubeRenderer light configuration
+ * 밝은 조명으로 색상 유지하면서 그림자 표현
  */
 function SceneLights() {
   return (
     <>
-      <directionalLight position={[0, 0, 1000]} intensity={1} />
-      <directionalLight position={[0, 0, -1000]} intensity={1} />
-      <directionalLight position={[0, 1000, 0]} intensity={1} />
-      <directionalLight position={[0, -1000, 0]} intensity={1} />
-      <directionalLight position={[1000, 0, 0]} intensity={1} />
-      <directionalLight position={[-1000, 0, 0]} intensity={1} />
+      <ambientLight intensity={2.5} />
+      <directionalLight
+        position={[10, 20, 10]}
+        intensity={0.8}
+        castShadow
+        shadow-mapSize-width={2048}
+        shadow-mapSize-height={2048}
+        shadow-camera-far={50}
+        shadow-camera-left={-20}
+        shadow-camera-right={20}
+        shadow-camera-top={20}
+        shadow-camera-bottom={-20}
+        shadow-bias={-0.0001}
+        shadow-radius={3}
+      />
     </>
   );
 }

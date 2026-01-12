@@ -14,55 +14,116 @@ interface VoxelMeshProps {
 }
 
 export function VoxelMesh({ voxels }: VoxelMeshProps) {
-  const geometry = useMemo(() => {
-    return createVoxelGeometry(voxels);
+  // 색상별로 복셀 그룹화 (Export와 동일)
+  const voxelsByColor = useMemo(() => {
+    return groupVoxelsByColor(voxels);
   }, [voxels]);
 
   return (
-    <mesh geometry={geometry}>
-      <meshBasicMaterial vertexColors side={THREE.DoubleSide} toneMapped={false} />
-    </mesh>
+    <group>
+      {/* 색상별로 별도 mesh 생성 (Export GLB와 동일) */}
+      {Array.from(voxelsByColor.entries()).map(([colorKey, colorVoxels]) => {
+        const firstVoxel = colorVoxels[0];
+        if (!firstVoxel) return null;
+
+        const voxelGeometry = createVoxelGeometryForColor(voxels, colorVoxels);
+        const { r, g, b } = firstVoxel.color;
+
+        return (
+          <mesh key={colorKey} geometry={voxelGeometry} castShadow receiveShadow>
+            <meshStandardMaterial
+              color={new THREE.Color(r, g, b)}
+              metalness={0}
+              roughness={1}
+              toneMapped={false}
+            />
+          </mesh>
+        );
+      })}
+
+      {/* 각 복셀마다 개별 박스와 경계선 */}
+      {voxels.map((voxel, index) => (
+        <VoxelEdges key={index} voxel={voxel} />
+      ))}
+    </group>
   );
 }
 
 /**
- * 복셀 배열로부터 단일 병합된 geometry 생성
- * Face culling 적용하여 보이는 면만 렌더링
+ * 개별 복셀의 경계선 컴포넌트
+ *
+ * Z-Fighting 해결 방법:
+ * 1. 테두리를 0.2% 크게 만들어 mesh 표면보다 앞에 배치
+ * 2. renderOrder를 1로 설정하여 mesh(기본값 0) 이후에 렌더링
+ *
+ * Note: polygonOffset은 Lines에 효과 없음 (Mesh에만 작동)
  */
-function createVoxelGeometry(voxels: Voxel[]): THREE.BufferGeometry {
+function VoxelEdges({ voxel }: { voxel: Voxel }) {
+  const edgeSize = VOXEL.SIZE * 1.002;
+  const boxGeometry = useMemo(
+    () => new THREE.BoxGeometry(edgeSize, edgeSize, edgeSize),
+    [edgeSize]
+  );
+  const edgesGeometry = useMemo(() => new THREE.EdgesGeometry(boxGeometry), [boxGeometry]);
+
+  return (
+    <lineSegments position={[voxel.x, voxel.y, voxel.z]} geometry={edgesGeometry} renderOrder={1}>
+      <lineBasicMaterial color={0x000000} />
+    </lineSegments>
+  );
+}
+
+/**
+ * 색상별로 복셀 그룹화 (Export와 동일)
+ */
+function groupVoxelsByColor(voxels: Voxel[]): Map<string, Voxel[]> {
+  const groups = new Map<string, Voxel[]>();
+
+  for (const voxel of voxels) {
+    const colorKey = `${voxel.color.r},${voxel.color.g},${voxel.color.b}`;
+    const group = groups.get(colorKey);
+    if (group) {
+      group.push(voxel);
+    } else {
+      groups.set(colorKey, [voxel]);
+    }
+  }
+
+  return groups;
+}
+
+/**
+ * 특정 색상 복셀들의 geometry 생성 (Export와 동일)
+ */
+function createVoxelGeometryForColor(
+  allVoxels: Voxel[],
+  colorVoxels: Voxel[]
+): THREE.BufferGeometry {
   const geometry = new THREE.BufferGeometry();
   const positions: number[] = [];
   const normals: number[] = [];
-  const colors: number[] = [];
 
-  const voxelMap = buildVoxelMap(voxels);
+  const voxelMap = buildVoxelMap(allVoxels);
 
-  for (const voxel of voxels) {
+  for (const voxel of colorVoxels) {
     const visibleFaces = getVisibleFaces(voxel, voxelMap);
 
     for (const face of visibleFaces) {
-      addFaceGeometry(positions, normals, colors, voxel, face);
+      addFaceGeometry(positions, normals, voxel, face);
     }
   }
 
   geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
   geometry.setAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
-  geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
 
   return geometry;
 }
 
 /**
- * 큐브의 한 면을 geometry 버퍼에 추가
+ * 큐브의 한 면을 geometry 버퍼에 추가 (색상 없이)
  */
-function addFaceGeometry(
-  positions: number[],
-  normals: number[],
-  colors: number[],
-  voxel: Voxel,
-  face: VoxelSide
-) {
-  const { x, y, z, color } = voxel;
+function addFaceGeometry(positions: number[], normals: number[], voxel: Voxel, face: VoxelSide) {
+  const { x, y, z } = voxel;
   const size = VOXEL.SIZE / 2; // 0.5 (틈 없이 딱 붙음)
 
   // 각 면의 4개 꼭짓점과 법선 벡터
@@ -76,7 +137,6 @@ function addFaceGeometry(
     if (!vertex) continue; // 타입 가드
     positions.push(vertex[0], vertex[1], vertex[2]);
     normals.push(faceData.normal[0], faceData.normal[1], faceData.normal[2]);
-    colors.push(color.r, color.g, color.b);
   }
 }
 
