@@ -1,5 +1,6 @@
 import type { Command, Voxel } from '@voxel-editor/shared-types';
 import { useEffect, useRef, useState } from 'react';
+import { ClearAllVoxelsCommand } from './commands/ClearAllVoxelsCommand';
 import { VoxelScene } from './components/canvas/VoxelScene';
 import { type EditorMode, Toolbar } from './components/ui/Toolbar';
 import { CommandManager } from './managers';
@@ -60,13 +61,12 @@ function App() {
   const handleClearAll = () => {
     if (voxels.length === 0) return;
 
-    if (confirm('Are you sure you want to clear all voxels?')) {
-      const clearAllCommand: Command = {
-        execute: (currentVoxels) => [],
-        undo: () => voxels,
-      };
-      executeCommand(clearAllCommand);
-    }
+    const clearAllCommand = new ClearAllVoxelsCommand(
+      voxels,
+      () => setVoxels([]),
+      (previousVoxels) => setVoxels(previousVoxels)
+    );
+    executeCommand(clearAllCommand);
   };
 
   return (
