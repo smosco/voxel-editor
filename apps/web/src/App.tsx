@@ -56,6 +56,19 @@ function App() {
     }
   };
 
+  // Clear All
+  const handleClearAll = () => {
+    if (voxels.length === 0) return;
+
+    if (confirm('Are you sure you want to clear all voxels?')) {
+      const clearAllCommand: Command = {
+        execute: (currentVoxels) => [],
+        undo: () => voxels,
+      };
+      executeCommand(clearAllCommand);
+    }
+  };
+
   return (
     <div style={{ width: '100vw', height: '100vh', margin: 0, padding: 0 }}>
       <Toolbar
@@ -68,6 +81,7 @@ function App() {
         canUndo={canUndo}
         canRedo={canRedo}
         onExport={handleExport}
+        onClearAll={handleClearAll}
       />
       <VoxelScene
         voxels={voxels}

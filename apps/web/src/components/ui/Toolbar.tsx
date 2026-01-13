@@ -1,5 +1,5 @@
 import { COLORS } from '@voxel-editor/shared-types';
-import { Download, Minus, Paintbrush, Plus, Redo2, Undo2 } from 'lucide-react';
+import { Download, Minus, Paintbrush, Plus, Redo2, Trash2, Undo2 } from 'lucide-react';
 import styles from './Toolbar.module.css';
 
 export type EditorMode = 'add' | 'remove' | 'paint';
@@ -14,6 +14,7 @@ interface ToolbarProps {
   canUndo: boolean;
   canRedo: boolean;
   onExport: () => void;
+  onClearAll: () => void;
 }
 
 /**
@@ -29,88 +30,106 @@ export function Toolbar({
   canUndo,
   canRedo,
   onExport,
+  onClearAll,
 }: ToolbarProps) {
   return (
     <div className={styles.toolbar}>
-      {/* 툴 버튼들 */}
-      <button
-        type="button"
-        className={`${styles.toolButton} ${currentMode === 'add' ? styles.active : ''}`}
-        onClick={(e) => {
-          e.stopPropagation();
-          onModeChange('add');
-        }}
-        title="Add voxel"
-      >
-        <Plus size={20} strokeWidth={2.5} />
-      </button>
-      <button
-        type="button"
-        className={`${styles.toolButton} ${currentMode === 'remove' ? styles.active : ''}`}
-        onClick={(e) => {
-          e.stopPropagation();
-          onModeChange('remove');
-        }}
-        title="Remove voxel"
-      >
-        <Minus size={20} strokeWidth={2.5} />
-      </button>
-      <button
-        type="button"
-        className={`${styles.toolButton} ${currentMode === 'paint' ? styles.active : ''}`}
-        onClick={(e) => {
-          e.stopPropagation();
-          onModeChange('paint');
-        }}
-        title="Paint voxel"
-      >
-        <Paintbrush size={20} strokeWidth={2.5} />
-      </button>
-
-      <div className={styles.divider} />
-
-      {/* Undo/Redo 버튼 */}
-      <div className={styles.historyButtons}>
+      {/* 툴 버튼 영역 */}
+      <div className={styles.toolsSection}>
         <button
           type="button"
-          className={styles.historyButton}
+          className={`${styles.toolButton} ${currentMode === 'add' ? styles.active : ''}`}
           onClick={(e) => {
             e.stopPropagation();
-            onUndo();
+            onModeChange('add');
           }}
-          disabled={!canUndo}
-          title="Undo"
+          title="Add voxel"
         >
-          <Undo2 size={18} strokeWidth={2.5} />
+          <Plus size={20} strokeWidth={2.5} />
         </button>
         <button
           type="button"
-          className={styles.historyButton}
+          className={`${styles.toolButton} ${currentMode === 'remove' ? styles.active : ''}`}
           onClick={(e) => {
             e.stopPropagation();
-            onRedo();
+            onModeChange('remove');
           }}
-          disabled={!canRedo}
-          title="Redo"
+          title="Remove voxel"
         >
-          <Redo2 size={18} strokeWidth={2.5} />
+          <Minus size={20} strokeWidth={2.5} />
+        </button>
+        <button
+          type="button"
+          className={`${styles.toolButton} ${currentMode === 'paint' ? styles.active : ''}`}
+          onClick={(e) => {
+            e.stopPropagation();
+            onModeChange('paint');
+          }}
+          title="Paint voxel"
+        >
+          <Paintbrush size={20} strokeWidth={2.5} />
+        </button>
+
+        <div className={styles.divider} />
+
+        {/* Clear All 버튼 */}
+        <button
+          type="button"
+          className={styles.toolButton}
+          onClick={(e) => {
+            e.stopPropagation();
+            onClearAll();
+          }}
+          title="Clear all voxels"
+        >
+          <Trash2 size={20} strokeWidth={2.5} />
+        </button>
+
+        <div className={styles.divider} />
+
+        {/* Undo/Redo 버튼 */}
+        <div className={styles.historyButtons}>
+          <button
+            type="button"
+            className={styles.historyButton}
+            onClick={(e) => {
+              e.stopPropagation();
+              onUndo();
+            }}
+            disabled={!canUndo}
+            title="Undo"
+          >
+            <Undo2 size={18} strokeWidth={2.5} />
+          </button>
+          <button
+            type="button"
+            className={styles.historyButton}
+            onClick={(e) => {
+              e.stopPropagation();
+              onRedo();
+            }}
+            disabled={!canRedo}
+            title="Redo"
+          >
+            <Redo2 size={18} strokeWidth={2.5} />
+          </button>
+        </div>
+
+        <div className={styles.divider} />
+
+        {/* Export 버튼 */}
+        <button
+          type="button"
+          className={styles.toolButton}
+          onClick={(e) => {
+            e.stopPropagation();
+            onExport();
+          }}
+          title="Export GLB"
+        >
+          <Download size={20} strokeWidth={2.5} />
         </button>
       </div>
-
-      <div className={styles.divider} />
-
-      {/* Export 버튼 */}
-      <button
-        type="button"
-        className={styles.toolButton}
-        onClick={(e) => {
-          e.stopPropagation();
-          onExport();
-        }}
-        title="Export GLB"
-      >
-        <Download size={20} strokeWidth={2.5} />
-      </button>
 
       <div className={styles.divider} />
 
