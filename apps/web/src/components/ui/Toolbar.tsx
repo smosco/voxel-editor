@@ -1,4 +1,5 @@
 import { COLORS } from '@voxel-editor/shared-types';
+import { Download, Minus, Paintbrush, Plus, Redo2, Undo2 } from 'lucide-react';
 import styles from './Toolbar.module.css';
 
 export type EditorMode = 'add' | 'remove' | 'paint';
@@ -32,41 +33,41 @@ export function Toolbar({
   return (
     <div className={styles.toolbar}>
       {/* 툴 버튼들 */}
-      <div className={styles.toolButtons}>
-        <button
-          type="button"
-          className={`${styles.toolButton} ${currentMode === 'add' ? styles.active : ''}`}
-          onClick={(e) => {
-            e.stopPropagation();
-            onModeChange('add');
-          }}
-          title="Add voxel"
-        >
-          <span className={styles.icon}>+</span>
-        </button>
-        <button
-          type="button"
-          className={`${styles.toolButton} ${currentMode === 'remove' ? styles.active : ''}`}
-          onClick={(e) => {
-            e.stopPropagation();
-            onModeChange('remove');
-          }}
-          title="Remove voxel"
-        >
-          <span className={styles.icon}>−</span>
-        </button>
-        <button
-          type="button"
-          className={`${styles.toolButton} ${currentMode === 'paint' ? styles.active : ''}`}
-          onClick={(e) => {
-            e.stopPropagation();
-            onModeChange('paint');
-          }}
-          title="Paint voxel"
-        >
-          <span className={styles.icon}>💧</span>
-        </button>
-      </div>
+      <button
+        type="button"
+        className={`${styles.toolButton} ${currentMode === 'add' ? styles.active : ''}`}
+        onClick={(e) => {
+          e.stopPropagation();
+          onModeChange('add');
+        }}
+        title="Add voxel"
+      >
+        <Plus size={20} strokeWidth={2.5} />
+      </button>
+      <button
+        type="button"
+        className={`${styles.toolButton} ${currentMode === 'remove' ? styles.active : ''}`}
+        onClick={(e) => {
+          e.stopPropagation();
+          onModeChange('remove');
+        }}
+        title="Remove voxel"
+      >
+        <Minus size={20} strokeWidth={2.5} />
+      </button>
+      <button
+        type="button"
+        className={`${styles.toolButton} ${currentMode === 'paint' ? styles.active : ''}`}
+        onClick={(e) => {
+          e.stopPropagation();
+          onModeChange('paint');
+        }}
+        title="Paint voxel"
+      >
+        <Paintbrush size={20} strokeWidth={2.5} />
+      </button>
+
+      <div className={styles.divider} />
 
       {/* Undo/Redo 버튼 */}
       <div className={styles.historyButtons}>
@@ -80,7 +81,7 @@ export function Toolbar({
           disabled={!canUndo}
           title="Undo"
         >
-          <span className={styles.icon}>↶</span>
+          <Undo2 size={18} strokeWidth={2.5} />
         </button>
         <button
           type="button"
@@ -92,24 +93,26 @@ export function Toolbar({
           disabled={!canRedo}
           title="Redo"
         >
-          <span className={styles.icon}>↷</span>
+          <Redo2 size={18} strokeWidth={2.5} />
         </button>
       </div>
 
+      <div className={styles.divider} />
+
       {/* Export 버튼 */}
-      <div className={styles.exportButton}>
-        <button
-          type="button"
-          className={styles.historyButton}
-          onClick={(e) => {
-            e.stopPropagation();
-            onExport();
-          }}
-          title="Export GLB"
-        >
-          <span className={styles.icon}>⬇</span>
-        </button>
-      </div>
+      <button
+        type="button"
+        className={styles.toolButton}
+        onClick={(e) => {
+          e.stopPropagation();
+          onExport();
+        }}
+        title="Export GLB"
+      >
+        <Download size={20} strokeWidth={2.5} />
+      </button>
+
+      <div className={styles.divider} />
 
       {/* 컬러 팔레트 (4x4 그리드) */}
       <div className={styles.colorPalette}>
