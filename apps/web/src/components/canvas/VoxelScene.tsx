@@ -3,15 +3,14 @@
  * Reference: CubeRenderer
  */
 
-import { OrbitControls } from '@react-three/drei';
-import { Canvas } from '@react-three/fiber';
+import { Grid, OrbitControls } from '@react-three/drei';
+import { Canvas, useThree } from '@react-three/fiber';
 import { CAMERA, COLORS, type Command, type Voxel } from '@voxel-editor/shared-types';
 import { useCallback, useEffect, useState } from 'react';
 import * as THREE from 'three';
 import { AddVoxelCommand, PaintVoxelCommand, RemoveVoxelCommand } from '@/commands';
 import { useInitialCamera } from '@/hooks/useInitialCamera';
 import { type RaycastHit, useVoxelRaycaster } from '@/hooks/useVoxelRaycaster';
-import { Grid } from './Grid';
 import { VoxelMesh } from './VoxelMesh';
 import { VoxelPreview } from './VoxelPreview';
 
@@ -58,7 +57,7 @@ export function VoxelScene({
         position: [10, 10, 10],
         near: CAMERA.NEAR,
         far: CAMERA.FAR,
-        zoom: 50, // 크게 확대
+        zoom: 1,
       }}
       orthographic
       gl={{
@@ -115,10 +114,16 @@ function SceneContent({
   onVoxelsChange,
 }: SceneContentProps) {
   const { raycast } = useVoxelRaycaster(voxels);
+  const { camera } = useThree();
 
   // 복셀 추가 핸들러 (Command Pattern 적용)
   const handleAddVoxel = useCallback(
     (hit: RaycastHit) => {
+      // 카메라가 그리드 아래(y < 0)에 있으면 블록 추가 방지
+      if (camera.position.y < 0) {
+        return;
+      }
+
       let newVoxel: Voxel;
 
       if (hit.type === 'voxel' && hit.voxel) {
@@ -141,6 +146,11 @@ function SceneContent({
         return;
       }
 
+      // y < 0.5 (그리드 아래)에는 블록 추가 방지
+      if (newVoxel.y < 0.5) {
+        return;
+      }
+
       // 이미 같은 위치에 복셀이 있는지 확인
       const exists = voxels.some(
         (v) => v.x === newVoxel.x && v.y === newVoxel.y && v.z === newVoxel.z
@@ -159,7 +169,7 @@ function SceneContent({
         onExecuteCommand(command);
       }
     },
-    [voxels, selectedColor, onExecuteCommand, onVoxelsChange]
+    [voxels, selectedColor, onExecuteCommand, onVoxelsChange, camera]
   );
 
   // 복셀 삭제 핸들러 (Command Pattern 적용)
@@ -245,15 +255,30 @@ function SceneContent({
         enableDamping
         dampingFactor={0.05}
         minPolarAngle={0}
-        maxPolarAngle={Math.PI / 2}
+        maxPolarAngle={Math.PI}
+        minZoom={0.5}
+        maxZoom={3}
         target={[0, 0, 0]}
       />
 
       {/* 6방향 조명 */}
       <SceneLights />
 
-      {/* 그리드 */}
-      <Grid />
+      {/* 무한 그리드 */}
+      <Grid
+        position={[0.5, 0, 0.5]}
+        infiniteGrid
+        cellSize={1}
+        cellThickness={0.6}
+        cellColor="#999999"
+        sectionSize={0}
+        sectionThickness={0}
+        sectionColor="transparent"
+        fadeDistance={50}
+        fadeStrength={1}
+        followCamera={false}
+        side={THREE.DoubleSide}
+      />
 
       {/* 복셀 메쉬 (face culling 적용) */}
       <VoxelMesh voxels={voxels} />
@@ -266,6 +291,23 @@ function SceneContent({
  */
 function CameraSetup() {
   useInitialCamera();
+  const { camera, size } = useThree();
+
+  // OrthographicCamera의 frustum을 화면 비율에 맞게 업데이트
+  useEffect(() => {
+    if (camera.type === 'OrthographicCamera') {
+      const orthoCamera = camera as THREE.OrthographicCamera;
+      const aspect = size.width / size.height;
+      const frustumSize = 20; // 기본 frustum 크기 (20 units 높이)
+
+      orthoCamera.left = (-frustumSize * aspect) / 2;
+      orthoCamera.right = (frustumSize * aspect) / 2;
+      orthoCamera.top = frustumSize / 2;
+      orthoCamera.bottom = -frustumSize / 2;
+      orthoCamera.updateProjectionMatrix();
+    }
+  }, [camera, size]);
+
   return null;
 }
 
